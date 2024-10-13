@@ -3,22 +3,14 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import { Main } from './parts/main/main';
-import { GoPag } from './parts/gopag/gopag';
-import { PaymentGateway } from './parts/gateway/gateway';
+
+import { ChakraProvider } from '@chakra-ui/react';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Main/>} />
-        <Route path="/go" element={<GoPag/>} />
-        {/* <Route path="/" element={<PaymentGateway/>} /> */}
-      </Routes>
-    </BrowserRouter>
-  </React.StrictMode>
+  <ChakraProvider>
+    <App></App>
+  </ChakraProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -65,7 +65,8 @@ body {
     color: #eee;
     transform: translate(0, -50%);
     font-family: system-ui;
-    display: none;
+    display:block ;
+
 }
 
 .slide .item:nth-child(2) .content {
