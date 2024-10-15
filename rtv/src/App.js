@@ -6,6 +6,9 @@ import { ChakraProvider } from '@chakra-ui/react';
 import PhonePePayment, { PaymentPage } from './parts/gateway/gateway';
 import { AdminDashboard } from './parts/admin/admin';
 import { AdminLogin } from './parts/admin/login';
+import { CustomFileUpload } from './parts/mempics/fileupload';
+import { HamsterWheel } from './parts/payload/payloade';
+import { Loadin } from './parts/loader/loadin';
 
 function App() {
   return (
@@ -16,6 +19,12 @@ function App() {
         <Route path="/payment" element={<PaymentPage/>} />
         <Route path="/admin" element={<AdminDashboard/>} />
         <Route path="/login" element={<AdminLogin/>} />
+        <Route path="/fileupload" element={<CustomFileUpload/>} />
+        <Route path="/lding" element={<HamsterWheel/>} />
+        <Route path="/lg" element={<Loadin/>} />
+
+
+
       </Routes>
     </BrowserRouter>
   );
