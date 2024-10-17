@@ -64,7 +64,9 @@ export const GoPag = () => {
     setDuration(duration);
     const availableSlots = getAvailableTimeSlots(duration);
     setTimeSlots(availableSlots);
+    setTimeSlot(''); // Reset time slot when duration changes
   };
+  
 
   const getAvailableTimeSlots = (duration) => {
     const slots = [
@@ -91,6 +93,16 @@ export const GoPag = () => {
 
   
 
+  const isValidEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const isValidPhoneNumber = (phone) => {
+    const re = /^\d{10}$/; // Assuming 10-digit phone numbers
+    return re.test(phone);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -98,6 +110,17 @@ export const GoPag = () => {
       displayPopUpMessage('Please fill out all fields.', 'error');
       return;
     }
+
+    if (!isValidEmail(email)) {
+      displayPopUpMessage('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    if (!isValidPhoneNumber(phoneNumber)) {
+      displayPopUpMessage('Please enter a valid phone number.', 'error');
+      return;
+    }
+
 
     const [startTime, endTime] = timeSlot.split(" - ").map(time => time.trim());
 
@@ -285,26 +308,26 @@ export const GoPag = () => {
 
 
 
-<FormControl mb={4}>
+        <FormControl mb={4}>
   <FormLabel htmlFor="startTime">Choose Start Time</FormLabel>
   <Flex>
     <Select
       id="startTime"
       placeholder="Select Start Time"
       onChange={(e) => {
-        handleTimeSlotChange(e);
-        // Optionally set the end time based on the selected start time
         const selectedStart = e.target.value;
         if (selectedStart) {
-          const durationHours = parseInt(duration); // Assuming you already set duration
+          const durationHours = parseInt(duration); // Use the current duration
           const endTime = calculateEndTime(selectedStart, durationHours);
           setTimeSlot(endTime ? `${selectedStart} - ${endTime}` : '');
         }
       }}
-      value={timeSlot.split(" - ")[0] || ''} // Setting the selected start time
+      value={timeSlot.split(" - ")[0] || ''} // Set start time value
     >
       {timeSlots.map((slot, index) => (
-        <option key={index} value={slot.split(" - ")[0]}>{slot.split(" - ")[0]}</option>
+        <option key={index} value={slot.split(" - ")[0]}>
+          {slot.split(" - ")[0]}
+        </option>
       ))}
     </Select>
 
@@ -312,15 +335,18 @@ export const GoPag = () => {
       id="endTime"
       placeholder="Select End Time"
       onChange={(e) => setTimeSlot(`${timeSlot.split(" - ")[0]} - ${e.target.value}`)}
-      value={timeSlot.split(" - ")[1] || ''} // Setting the selected end time
-      ml={4} // Adds margin to the left for spacing
+      value={timeSlot.split(" - ")[1] || ''} // Set end time value
+      ml={4} // Add margin for spacing
     >
       {timeSlots.map((slot, index) => (
-        <option key={index} value={slot.split(" - ")[1]}>{slot.split(" - ")[1]}</option>
+        <option key={index} value={slot.split(" - ")[1]}>
+          {slot.split(" - ")[1]}
+        </option>
       ))}
     </Select>
   </Flex>
 </FormControl>
+
 
 
         <Button type="submit" colorScheme="purple" width="full">

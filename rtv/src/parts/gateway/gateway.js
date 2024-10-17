@@ -217,7 +217,8 @@ export const PaymentPage = () => {
                         <Box>
                             <AlertTitle>Warning!</AlertTitle>
                             <AlertDescription>
-                                This interface is not responsible for the payment. You are just paying money directly to the incharge.
+                                The banking name is MALLA..... . please verify before proceeding
+
                             </AlertDescription>
                         </Box>
                         <CloseButton

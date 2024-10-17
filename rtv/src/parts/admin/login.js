@@ -17,8 +17,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export const AdminLogin = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [name, setUsername] = useState('');
+    const [pwd, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
@@ -30,26 +30,35 @@ export const AdminLogin = () => {
     
         try {
             // Send login request to backend
-            const response = await axios.post('/log', {
-                username,
-                password,
+            const response = await axios.post('http://localhost:5000/login', {
+                name,
+                pwd,
             });
     
             if (response.status === 200) {
                 // Successful login
-                nav('/admin'); // Redirect to admin page
+                toast({
+                    title: 'Login success',
+                    status: 'success',
+                    duration: 2000,
+                    isClosable: true,
+                });
+                nav('/admin',{state:name}); // Redirect to admin page
             }
-        } catch (error) {
-            // Handle errors
-            setError('Invalid username or password.');
+        }catch (error) {
+            console.error('Login Error:', error); // Log the error for debugging
+            const errorMessage = error.response?.data?.error || 'Invalid username or password.';
+            setError(errorMessage);
             toast({
                 title: 'Login Failed',
-                description: 'Invalid username or password.',
+                description: errorMessage,
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
             });
-        } finally {
+        }
+        
+         finally {
             setLoading(false); // Stop loading
         }
     };
@@ -80,7 +89,7 @@ export const AdminLogin = () => {
                     <Input
                         id="username"
                         placeholder="Username"
-                        value={username}
+                        value={name}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
@@ -91,7 +100,7 @@ export const AdminLogin = () => {
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="Password"
-                        value={password}
+                        value={pwd}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         onPaste={(e) => e.preventDefault()} // Disable paste

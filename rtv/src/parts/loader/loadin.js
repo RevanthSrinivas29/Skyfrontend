@@ -4,17 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Loadin = () => {
   const [loading, setLoading] = useState(true); // State to manage loading
-  // const navigate = useNavigate(); // Hook to handle navigation
-
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     navigate("/go", { state: { itemName: "exampleName", itemImage: "exampleImage" } });
-  //     setLoading(false); // Set loading back to false after navigation
-  //   }, 2000); // Run for 2 seconds
-
-  //   // Cleanup the timer on component unmount
-  //   return () => clearTimeout(timer);
-  // }, [navigate]);
+  
 
   return loading ? (
     <Box className="container">
@@ -37,8 +27,8 @@ export const Loadin = () => {
 
       <style>{`
         .container {
-          width: 200px;
-          height: 200px;
+          width: 80px; /* Reduced size by 20% */
+          height: 80px; /* Reduced size by 20% */
           position: absolute;
           top: 50%;
           left: 50%;
@@ -49,8 +39,8 @@ export const Loadin = () => {
         }
 
         .dot {
-          width: 70px;
-          height: 70px;
+          width: 56px; /* Reduced size by 20% */
+          height: 56px; /* Reduced size by 20% */
           border-radius: 50%;
           background-color: #000;
           position: absolute;
@@ -81,13 +71,13 @@ export const Loadin = () => {
             transform: scale(1);
           }
           45% {
-            transform: translateY(-18px) scale(0.45);
+            transform: translateY(-14px) scale(0.45); /* Adjusted for size */
           }
           60% {
-            transform: translateY(-90px) scale(0.45);
+            transform: translateY(-72px) scale(0.45); /* Adjusted for size */
           }
           80% {
-            transform: translateY(-90px) scale(0.45);
+            transform: translateY(-72px) scale(0.45); /* Adjusted for size */
           }
           100% {
             transform: translateY(0px) scale(1);
@@ -99,13 +89,13 @@ export const Loadin = () => {
             transform: scale(1);
           }
           45% {
-            transform: translate(-16px, 12px) scale(0.45);
+            transform: translate(-13px, 10px) scale(0.45); /* Adjusted for size */
           }
           60% {
-            transform: translate(-80px, 60px) scale(0.45);
+            transform: translate(-64px, 48px) scale(0.45); /* Adjusted for size */
           }
           80% {
-            transform: translate(-80px, 60px) scale(0.45);
+            transform: translate(-64px, 48px) scale(0.45); /* Adjusted for size */
           }
           100% {
             transform: translateY(0px) scale(1);
@@ -117,13 +107,13 @@ export const Loadin = () => {
             transform: scale(1);
           }
           45% {
-            transform: translate(16px, 12px) scale(0.45);
+            transform: translate(13px, 10px) scale(0.45); /* Adjusted for size */
           }
           60% {
-            transform: translate(80px, 60px) scale(0.45);
+            transform: translate(64px, 48px) scale(0.45); /* Adjusted for size */
           }
           80% {
-            transform: translate(80px, 60px) scale(0.45);
+            transform: translate(64px, 48px) scale(0.45); /* Adjusted for size */
           }
           100% {
             transform: translateY(0px) scale(1);
