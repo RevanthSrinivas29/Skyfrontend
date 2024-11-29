@@ -22,8 +22,7 @@ function App() {
         <Route path="/fileupload" element={<CustomFileUpload/>} />
         <Route path="/lding" element={<HamsterWheel/>} />
         <Route path="/lg" element={<Loadin/>} />
-
-
+        <Route path="/confirm" element={<handleConfirm/>} />
 
       </Routes>
     </BrowserRouter>
