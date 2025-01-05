@@ -55,7 +55,7 @@ export const Main = () => {
   const handleSubmitRating = async () => {
     try {
       setSubmitted(true); 
-      await axios.post('https://skyserverrtv.onrender.com/', { id: 1, rating });
+      await axios.post('https://skyland.onrender.com/', { id: 1, rating });
         toast({
         title: "Thank you for the feedback!",
         description: "We appreciate your effort to rate us. It will be a great help for us.",
