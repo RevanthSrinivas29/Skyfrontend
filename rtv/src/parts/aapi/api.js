@@ -1,1 +1,1 @@
-export const api = "https://skyfrontend.vercel.app/"
+export const api = "https://skyland.onrender.com"
