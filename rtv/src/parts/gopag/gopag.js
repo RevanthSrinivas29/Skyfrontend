@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import axios from 'axios';
@@ -36,12 +36,22 @@ export const GoPag = () => {
   const [timeSlot, setTimeSlot] = useState('');
   const [timeSlots, setTimeSlots] = useState([]);
   const toast = useToast();
+  const [dur,setDur] = useState('')
   const nav = useNavigate();
+  const now = new Date()
+  const formtDate = now.toLocaleDateString('en-GB');
+  const formtTime= now.toLocaleTimeString('en-GB');
+  useEffect(() => {
+    console.log(formtDate,formtTime)
+  }, [formtDate,formtTime]);
+ 
+
+
 
   const urls = [
     { Iname: "CricketNets", url: "https://www.shutterstock.com/shutterstock/videos/3447451967/thumb/1.jpg?ip=x480" },
     { Iname: "SwimmingPool", url: "https://watermark.lovepik.com/photo/20211203/large/lovepik-swimming-pool-picture_501497422.jpg" },
-    { Iname: "Hotel", url: "https://images.squarespace-cdn.com/content/v1/5994793b4c0dbfd6d7f78ae6/1515423481093-HA45709XLVXIHLOMM48P/pool+house.jpg" },
+    { Iname: "Party House", url: "https://images.squarespace-cdn.com/content/v1/5994793b4c0dbfd6d7f78ae6/1515423481093-HA45709XLVXIHLOMM48P/pool+house.jpg" },
   ];
 
   const location = useLocation();
@@ -70,29 +80,17 @@ export const GoPag = () => {
 
   const getAvailableTimeSlots = (duration) => {
     const slots = [
-      "08:00", "09:00", "10:00", "11:00", "12:00",
-      "13:00", "14:00", "15:00", "16:00", "17:00",
-      "18:00", "19:00"
+      "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00",
+      "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00",
+      "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
     ];
+  
     return slots.map((slot) => {
       const endTime = calculateEndTime(slot, duration);
       return endTime ? `${slot} - ${endTime}` : null;
     }).filter(Boolean);
   };
-
-  const calculateEndTime = (startTime, duration) => {
-    const [hours, minutes] = startTime.split(':').map(Number);
-    const endHours = hours + duration;
-    if (endHours > 19) return null; // If end time exceeds 7 PM, return null
-    return `${String(endHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-  };
-
-  const handleTimeSlotChange = (e) => {
-    setTimeSlot(e.target.value);
-  };
-
   
-
   const isValidEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -102,53 +100,78 @@ export const GoPag = () => {
     const re = /^\d{10}$/; // Assuming 10-digit phone numbers
     return re.test(phone);
   };
-
+  const calculateEndTime = (startTime, duration) => {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    let endHours = hours + duration;
+    const endMinutes = minutes;
+    if (endHours >= 24) {
+      endHours = 24; // After midnight, reset hours to 24 (midnight).
+    }
+  
+    const validDuration = endHours - hours; // Calculate valid duration.
+    setDur(validDuration); // Update state if mismatch exists.
+  
+    return `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!name || !email || !phoneNumber || !date || !duration || !timeSlot) {
       displayPopUpMessage('Please fill out all fields.', 'error');
       return;
     }
-
+  
     if (!isValidEmail(email)) {
       displayPopUpMessage('Please enter a valid email address.', 'error');
       return;
     }
-
+  
     if (!isValidPhoneNumber(phoneNumber)) {
       displayPopUpMessage('Please enter a valid phone number.', 'error');
       return;
     }
-
-
-    const [startTime, endTime] = timeSlot.split(" - ").map(time => time.trim());
-
+  
+    const [startTime, endTime] = timeSlot.split(" - ").map((time) => time.trim());
+    const formattedDate = date.split('-').reverse().join('-');
+  
+    if (parseInt(duration) !== parseInt(dur)) {
+      displayPopUpMessage(
+        'Sorry 😓! To select after midnight (00:00), book again with 12:00 AM as the starting time.',
+        'error'
+      );
+      return;
+    }
+  
     const bookingData = {
       name,
       email,
       phoneNumber,
-      date,
+      date: formattedDate,
       duration,
       timeSlot,
       itemName,
       startTime,
-      endTime
+      endTime,
+      payment: 'pending',
+      formtDate,
+      formtTime,
     };
+  
     sessionStorage.setItem('bookingData', JSON.stringify(bookingData));
-
+    console.log('Booking data stored:', bookingData);
+  
     try {
       const response = await axios.post('http://localhost:9000/go', bookingData);
-
+      const userID = response.data.userId;
+      console.log(userID);
+  
       if (response.status === 200) {
         displayPopUpMessage(response.data.message || 'Appointment Confirmed!', 'success');
-        
-
+  
         setTimeout(() => {
-          nav("/payment", { state: { bookingData } });
-        }, 3000);
-
-        // resetForm();
+          nav("/payment", { state: { duration,userID} });
+        }, 2000);
       } else {
         displayPopUpMessage('Booking Failed!', 'error');
       }
@@ -161,6 +184,7 @@ export const GoPag = () => {
       console.error('Error:', error);
     }
   };
+  
 
   const displayPopUpMessage = (message, status) => {
     toast({
@@ -171,15 +195,7 @@ export const GoPag = () => {
     });
   };
 
-  // const resetForm = () => {
-  //   setName('');
-  //   setEmail('');
-  //   setPhoneNumber('');
-  //   setDate('');
-  //   setDuration('');
-  //   setTimeSlot('');
-  //   setTimeSlots([]);
-  // };
+
 
 
   return (
@@ -337,6 +353,7 @@ export const GoPag = () => {
       onChange={(e) => setTimeSlot(`${timeSlot.split(" - ")[0]} - ${e.target.value}`)}
       value={timeSlot.split(" - ")[1] || ''} // Set end time value
       ml={4} // Add margin for spacing
+      isDisabled='true'
     >
       {timeSlots.map((slot, index) => (
         <option key={index} value={slot.split(" - ")[1]}>
@@ -346,17 +363,12 @@ export const GoPag = () => {
     </Select>
   </Flex>
 </FormControl>
-
-
-
         <Button type="submit" colorScheme="purple" width="full">
           Book Appointment
         </Button>
       </form>
-    </Container>
-
-    {/* Additional Content to make page scroll */}
-   
+      <Text>*Note:You can only select slot on the same day.If midnight then book slot as startTime:24:00 and 0:00:endTime</Text>
+    </Container>   
   </Box>
 
   {/* Footer */}

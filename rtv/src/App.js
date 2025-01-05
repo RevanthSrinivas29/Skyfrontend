@@ -9,6 +9,7 @@ import { AdminLogin } from './parts/admin/login';
 import { CustomFileUpload } from './parts/mempics/fileupload';
 import { HamsterWheel } from './parts/payload/payloade';
 import { Loadin } from './parts/loader/loadin';
+import { End } from './parts/endpage/end';
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
         <Route path="/lding" element={<HamsterWheel/>} />
         <Route path="/lg" element={<Loadin/>} />
         <Route path="/confirm" element={<handleConfirm/>} />
-
+        <Route path="/end" element={<End/>}/>
       </Routes>
     </BrowserRouter>
   );

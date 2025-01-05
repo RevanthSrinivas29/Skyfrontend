@@ -1,214 +1,102 @@
-// // // PaymentPage.js
-// // import React, { useState } from 'react';
-// // import { Box, Button, useToast } from '@chakra-ui/react';
-// // import axios from 'axios';
-
-// // const PaymentPage = () => {
-// //   const [amount] = useState(10); // Default amount
-// //   const toast = useToast();
-
-// //   const handlePaymentRequest = async () => {
-// //     try {
-// //       // Send request to the server to create a payment request
-// //       const response = await axios.post('http://localhost:9000/payment', { amount });
-
-// //       if (response.data.success) {
-// //         // Redirect user to PhonePe app using deep linking
-// //         const phonePeUrl = `phonepe://pay?amount=${amount}&transactionId=${response.data.transactionId}`; // Customize this URL as needed
-// //         window.location.href = phonePeUrl; // Redirect to PhonePe app
-
-// //         toast({
-// //           title: 'Payment initiated!',
-// //           description: 'Please check your PhonePe app to complete the transaction.',
-// //           status: 'success',
-// //           duration: 5000,
-// //           isClosable: true,
-// //         });
-// //       } else {
-// //         toast({
-// //           title: 'Payment failed',
-// //           description: response.data.message,
-// //           status: 'error',
-// //           duration: 5000,
-// //           isClosable: true,
-// //         });
-// //       }
-// //     } catch (error) {
-// //       toast({
-// //         title: 'Error',
-// //         description: 'Error occurred during payment processing!',
-// //         status: 'error',
-// //         duration: 5000,
-// //         isClosable: true,
-// //       });
-// //     }
-// //   };
-
-// //   return (
-// //     <Box p={8} maxW="400px" mx="auto" mt={10}>
-// //       <Button onClick={handlePaymentRequest} colorScheme="blue" w="full">
-// //         Pay ₹{amount} with PhonePe
-// //       </Button>
-// //     </Box>
-// //   );
-// // };
-
-// // export default PaymentPage;
-// import React, { useState } from 'react';
-// import { Box, Button, FormControl, VStack, Text, useToast, Card, Heading, Image, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton } from '@chakra-ui/react';
-// import axios from 'axios';
-
-// export const PaymentPage = () => {
-//     const [amount, setAmount] = useState('');
-//     const [showAlert, setShowAlert] = useState(true);  // State to control the visibility of the alert
-//     const toast = useToast();
-
-//     const handlePayment = async () => {
-//         try {
-//             const response = await axios.post('http://localhost:3000/makePayment', { amount });
-//             if (response.data.success) {
-//                 toast({
-//                     title: "Payment Initiated",
-//                     description: response.data.message,
-//                     status: "success",
-//                     duration: 5000,
-//                     isClosable: true,
-//                 });
-//             } else {
-//                 toast({
-//                     title: "Payment Failed",
-//                     description: response.data.message,
-//                     status: "error",
-//                     duration: 5000,
-//                     isClosable: true,
-//                 });
-//             }
-//         } catch (error) {
-//             console.error("Error during payment:", error);
-//             toast({
-//                 title: "Error",
-//                 description: "An error occurred during payment processing.",
-//                 status: "error",
-//                 duration: 5000,
-//                 isClosable: true,
-//             });
-//         }
-//     };
-
-//     return (
-//       <Box width="400px" mx="auto" mt={8}>
-//         <VStack spacing={4}>
-//           {/* Alert for payment security */}
-//           {showAlert && (
-//             <Alert status="warning" borderRadius={5}>
-//               <AlertIcon />
-//               <Box>
-//                 <AlertTitle>Warning!</AlertTitle>
-//                 <AlertDescription>
-//                   This interface is not responsible for the payment.You are just paying money 
-//                   directly to the incharge
-//                 </AlertDescription>
-//               </Box>
-//               <CloseButton
-//                 position="absolute"
-//                 right="8px"
-//                 top="8px"
-//                 onClick={() => setShowAlert(false)}  // Hide the alert when close button is clicked
-//               />
-//             </Alert>
-//           )}
-
-            
-//               <Text fontSize="2xl" fontWeight="bold" textAlign="center">
-//                 Scan the QR for <br></br>the payment
-//               </Text>
-//               <Box
-//         display="flex" // Use flexbox to center content
-//         justifyContent="center" // Center horizontally
-//         alignItems="center" // Center vertically
-//         mt={4}
-//         mb={4} // Margin bottom to create space below the image
-//         m={10}
-//         borderRadius="20px" // Adjust border radius as needed
-//         background="linear-gradient(125deg, #cacaca, #f0f0f0)" // Gradient background
-//         boxShadow="22px 22px 45px #bebebe, -22px -22px 45px #ffffff" // Neumorphic shadow
-//         p={5} // Optional padding
-//         width="300px" // Set width of the box
-//         height="300px" // Set height of the box
-//       >
-//         <Image
-//           src={require('../assests/revqr1r.jpg')} // Ensure the path is correct
-//           alt="QR Code for Payment"
-//           borderRadius="20px" // Match the border radius of the Box
-//           width="100%" // Make image take full width
-//           height="100%" // Make image take full height
-//           objectFit="cover" // Maintain aspect ratio while covering the box
-//         />
-//       </Box>
-
-
-//           <Heading colorScheme="teal">Make Payment</Heading>
-//         </VStack>
-//       </Box>
-//     );
-// };
-// ;
-
-
-
-import React, { useState}     from 'react';
-import { Box, Button, FormControl, VStack, Text, useToast, Card, Heading, Image, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { 
+    Box, Button, FormControl, VStack, Text, useToast, 
+    Card, Image, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton, Input 
+} from '@chakra-ui/react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 export const PaymentPage = () => {
+    const [tcid, setTcid] = useState('');
+    const [bkname, setBkname] = useState('');
     const [showAlert, setShowAlert] = useState(true);
     const toast = useToast();
+    const location = useLocation();
+    const navigate = useNavigate();
 
+    const { duration,userID } = location.state || {};
+    console.log(userID);
+    const fixedAmount =duration ===5 ?800 :duration === 3 ? 500 : duration === 2 ? 400 : 300;
+    const upiID = '8247693087@axl';
+    const encodedUpiID = encodeURIComponent(upiID);
+    const encodedAmount = encodeURIComponent(fixedAmount.toFixed(2));
+    const qrCodeUrl = `upi://pay?pa=${encodedUpiID}&pn=BOOKING GAMES&am=${encodedAmount}&cu=INR`;
 
-    // Fixed amount for payment
-    const fixedAmount = 1; // Change this to your desired fixed amount
-    const upiID = "824793087@axl"; // Replace with your actual UPI ID
-    const qrCodeUrl = `upi://pay?pa=${upiID}&pn=YourBusinessName&am=${fixedAmount}&cu=INR`; // Generate the UPI link
-    const nav = useNavigate();
+    // Display bookingData only once
+    useEffect(() => {
+        const userdt = sessionStorage.getItem('bookingData');
+        if (userdt) {
+            const user = JSON.parse(userdt);
+            console.log(user);
+        } else {
+            console.log('No data found');
+        }
+    }, []);
+
     const handlePayment = async () => {
+        const TRANSACTION_ID_LENGTH = 12;
+    
+        if (!tcid || !bkname) {
+            toast({
+                title: "Missing Fields",
+                description: "Please enter both Transaction ID and Banking Name.",
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+    
+        if (tcid.length !== TRANSACTION_ID_LENGTH) {
+            toast({
+                title: "Invalid Transaction ID",
+                description: `Transaction ID must be exactly ${TRANSACTION_ID_LENGTH} characters long.`,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+    
+        const details = { tcid, bkname, userID, fixedAmount };
+        console.log("Submitting payment details:", details); // Debugging
+    
         try {
-            // Simulate a payment request to your backend
-            const response = await axios.post('http://localhost:3000/makePayment', { amount: fixedAmount });
-            
-            if (response.data.success) {
+            const response = await axios.post('http://localhost:9000/payment', details);
+            console.log("Server response:", response); // Debugging
+    
+            if (response.status === 200) {
                 toast({
-                    title: "Payment Successful",
-                    description: "Your payment was completed successfully!",
+                    title: "Payment Confirmation",
+                    description: "Your payment details have been successfully submitted. Details will be sent to your mail.",
                     status: "success",
-                    duration: 5000,
+                    duration: 7000,
                     isClosable: true,
                 });
-                
-                // Redirect to a "Thank You" page
-                nav('/thank-you'); // Adjust to your actual thank you page route
             } else {
                 toast({
-                    title: "Payment Failed",
-                    description: response.data.message,
+                    title: "Submission Failed",
+                    description: response.data?.message || "Something went wrong.",
                     status: "error",
                     duration: 5000,
                     isClosable: true,
                 });
             }
         } catch (error) {
-            console.error("Error during payment:", error);
+            console.error("Error during payment submission:", error.response || error); // Debugging
             toast({
                 title: "Error",
-                description: "An error occurred during payment processing.",
+                description: error.response?.data?.message,
                 status: "error",
                 duration: 5000,
                 isClosable: true,
             });
         }
     };
+    
 
     return (
-        <Box width="400px" mx="auto" mt={8}>
+        <Box width="300px" mx="auto" mt={8}>
             <VStack spacing={4}>
                 {/* Alert for payment security */}
                 {showAlert && (
@@ -217,15 +105,14 @@ export const PaymentPage = () => {
                         <Box>
                             <AlertTitle>Warning!</AlertTitle>
                             <AlertDescription>
-                                The banking name is MALLA..... . please verify before proceeding
-
+                                The banking name is MALLA. Please verify before proceeding.
                             </AlertDescription>
                         </Box>
                         <CloseButton
                             position="absolute"
                             right="8px"
                             top="8px"
-                            onClick={() => setShowAlert(false)} // Hide the alert when close button is clicked
+                            onClick={() => setShowAlert(false)}
                         />
                     </Alert>
                 )}
@@ -233,19 +120,35 @@ export const PaymentPage = () => {
                 <FormControl id="amount" isRequired>
                     <Card mt={4} borderRadius={5} p={4} boxShadow="2xl">
                         <Text fontSize="xl" fontWeight="bold" textAlign="center">
-                            Scan the QR for the payment
+                            Make payment and share the details
                         </Text>
-                        <Image
-                            src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrCodeUrl)}&size=200x200`} // QR Code generation
-                            alt="QR Code for Payment"
+                        <Button onClick={() =>window.open( `upi://pay?pa=${encodedUpiID}&pn=BOOKING GAMES&am=${encodedAmount}&cu=INR`, '_blank' )
+                                }
+                                alt="Link for Payment"
+                                colorScheme="teal"
+                                mt={4}
+                                >
+                                Pay {fixedAmount}
+                                </Button>
+
+                            
+                        <Input
+                            placeholder="Enter Transaction ID"
+                            value={tcid}
+                            onChange={(e) => setTcid(e.target.value)}
                             mt={4}
-                            m={10}
-                            borderRadius={20}
+                        />
+                        <Input
+                            placeholder="Enter Banking Name"
+                            value={bkname}
+                            onChange={(e) => setBkname(e.target.value)}
+                            mt={4}
                         />
                     </Card>
                 </FormControl>
-
-                <Button onClick={handlePayment} colorScheme="teal">Make Payment</Button>
+                <Button onClick={handlePayment} colorScheme="teal" mt={4}>
+                    Confirm Payment
+                </Button>
             </VStack>
         </Box>
     );

@@ -1,5 +1,28 @@
 import { HamburgerIcon, PhoneIcon } from '@chakra-ui/icons';
-import { Box, Flex, Text, Button, Table, Thead, Tbody, Tr, Th, Td, VStack, useDisclosure, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Heading } from '@chakra-ui/react';
+import {
+    Box,
+    Flex,
+    Text,
+    Button,
+    Table,
+    Thead,
+    Tbody,
+    Tr,
+    Th,
+    Td,
+    VStack,
+    useDisclosure,
+    AlertDialog,
+    AlertDialogOverlay,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogBody,
+    AlertDialogFooter,
+    Toast,
+    useToast,
+    Center,
+    Menu
+} from '@chakra-ui/react';
 import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 
@@ -7,23 +30,28 @@ export const AdminDashboard = () => {
     const [activeSection, setActiveSection] = useState('dashboard');
     const [data, setData] = useState([]);
     const [error, setError] = useState(null);
+    const [uscount, setUsCount] = useState(0); // Track user count
     const [itemCount, setItemCount] = useState(0);
+    const [totalAmount, setAmount] = useState(0); // Track user count
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
     const cancelRef = useRef();
+    const now = new Date();
     const [itemToDelete, setItemToDelete] = useState(null);
-    const [confirmDeleteAll, setConfirmDeleteAll] = useState(false); // State for delete all confirmation
-
-    useEffect(() => {
-        fetchData(); // Fetch data on component mount
-    }, []);
+    const toast = useToast();
+    
+   
 
     const fetchData = () => {
         axios
             .post("http://localhost:9000/admin", { action: 'fetch' })
             .then((response) => {
-                setData(response.data);
-                console.log(response.data);
+                setData(
+                    response.data.map((item) => ({
+                        ...item,
+                        confirmStatus: item.paymentStatus === 'paid' ? 'Confirmed' : 'Confirm',
+                    }))
+                );                
                 setItemCount(response.data.length);
             })
             .catch((error) => {
@@ -32,19 +60,71 @@ export const AdminDashboard = () => {
             });
     };
 
-    const handleDelete = () => {
-        axios
-            .post("http://localhost:9000/admin", { action: 'delete', itemToDelete })
+
+    const handleConfirm = (info) => {
+        if (!info) return; // Guard against empty info
+        axios.post("http://localhost:9000/admin", { action: 'confirm', info })
             .then((response) => {
-                setData(data.filter(item => item._id !== itemToDelete._id));
-                setItemCount(prevCount => prevCount - 1); // Update the item count
-                onAlertClose(); // Close the alert dialog
+                const updatedItem = response.data; // Get updated item from backend
+                setData((prevData) =>
+                    prevData.map((item) =>
+                        item._id === updatedItem._id
+                            ? updatedItem // Replace the updated item
+                            : item
+                    )
+                );
+                toast({
+                    title: 'Confirmation Successful',
+                    description: `Payment is confirmed. Booking details will be sent via email.`,
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                const total = data.reduce((acc, data) => acc + data.Amt, 0);
+                setAmount(total);
+                setUsCount((prevCount) => prevCount + 1);
             })
             .catch((error) => {
-                console.error('Error deleting item:', error);
-                setError('Error deleting item');
+                console.error('Error occurred during confirmation:', error);
+                toast({
+                    title: 'Error',
+                    description: 'Failed to confirm the payment. Please try again.',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
             });
     };
+   
+    
+    const handleDelete = (item) => {
+        axios.post("http://localhost:9000/admin", { action: 'delete', item })
+            .then((response) => {
+                // Remove item from frontend list
+                console.log(response)
+                setData(prevData => prevData.filter(dataItem => dataItem._id !== item._id));
+                setItemCount(prevCount => prevCount - 1); 
+                onClose();
+                toast({
+                    title: 'Deleted',
+                    description: 'Booking has been deleted.',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            })
+            .catch((error) => {
+                console.error('Error deleting the item:', error);
+                toast({
+                    title: 'Error',
+                    description: 'There was an issue deleting the booking.',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            });
+    };
+    
 
     const handleDeleteAll = () => {
         axios
@@ -59,39 +139,36 @@ export const AdminDashboard = () => {
                 setError('Error deleting all data');
             });
     };
-
     const handleCancelClick = (item) => {
+        console.log(item)
         setItemToDelete(item); // Store the item to delete
         onOpen(); // Open the AlertDialog for single delete
     };
 
-    const showSection = (sectionId) => {
-        setActiveSection(sectionId);
-        onClose(); // Close sidebar on section change
+    const showSection = (section) => {
+        setActiveSection(section);
+        onClose();
     };
+
+    useEffect(() => {
+        fetchData();
+         // Fetch data on component mount
+         handleConfirm();
+    },[handleConfirm]);
 
     return (
         <Flex direction={{ base: 'column', md: 'row' }}>
             {/* Sidebar */}
-            <Box 
-                width={{ base: '100%', md: '250px' }} 
-                bg="#1E3E62" 
-                height={{ base: isOpen ? 'auto' : '0', md: '100vh' }} 
+            <Box
+                width={{ base: '100%', md: '250px' }}
+                bg="#1E3E62"
+                height={{ base: 'auto', md: '100vh' }}
                 overflow="hidden"
-                transition="height 0.3s"
-                p="20px"
-                boxShadow="lg" 
+                p={{ base: '10px', md: '20px' }} // Responsive padding
+                boxShadow="lg"
                 position={{ base: 'absolute', md: 'fixed' }}
                 zIndex={1}
             >
-                <Button 
-                    onClick={onOpen} 
-                    display={{ base: 'block', md: 'none' }} 
-                    mb="40px"
-                    colorScheme="teal"
-                >
-                    <HamburgerIcon />
-                </Button>
                 <Text fontSize="2xl" color="white" mb="20px">Admin Panel</Text>
                 <VStack spacing={8} align="start">
                     <Box bgColor="white" borderRadius="10px" p={4} width="100%">
@@ -118,117 +195,115 @@ export const AdminDashboard = () => {
             </Box>
 
             {/* Main content */}
-            <Box 
-                ml={{ base: 0, md: '270px' }} 
-                p="20px" 
+            <Box
+                ml={{ base: 0, md: '270px' }}
+                p={{ base: '10px', md: '20px' }} // Responsive padding
                 width={{ base: '100%', md: 'calc(100% - 270px)' }}
-                transition="margin-left 0.3s"
                 position='relative'
             >
-                <Box 
+                <Box
                     bg="#1E3E62" color="white" p="15px" display='flex' justifyContent="space-between" alignItems="center" mb="20px" borderRadius="5px"
                 >
                     <Text fontSize={{ base: 'lg', md: 'xl' }} flexGrow={1} textAlign="center">
-                        Welcome, Revanth!
+                        Welcome, Admin!
                     </Text>
-                    {activeSection === 'userManagement' && (
-                        <Button size="sm" colorScheme="red" onClick={onAlertOpen}>
-                            Delete All
-                        </Button>
-                    )}
+                   
                 </Box>
 
                 {/* Dashboard Section */}
                 {activeSection === 'dashboard' && (
                     <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
                         <Text fontSize="xl" color="#1E3E62" mb="15px">Key Statistics</Text>
-                        <Text>Total Bookings: <strong>{itemCount}</strong></Text>
-                        <Text>Revenue This Month: <strong>$12,000</strong></Text>
-                        <Text>Active Users: <strong>3,500</strong></Text>
+                        <Text>Total Confirmed Bookings: <strong>{uscount}</strong></Text>
+                        <Text>Revenue This Month: <strong>{totalAmount}</strong></Text>
+                        <Text>Active Users: <strong>{itemCount}</strong></Text>
                     </Box>
                 )}
 
                 {/* User Management Section */}
                 {activeSection === 'userManagement' && (
                     <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
+                    <Box display='flex' justifyContent="space-between" >
                         <Text fontSize="xl" color="#1E3E62" mb="15px">User Management</Text>
+                        {activeSection === 'userManagement' && (
+                        <Button size="sm" colorScheme="red" onClick={onAlertOpen}>
+                            Delete All
+                        </Button>
+                    )}</Box>
                         <Button colorScheme="black" mb="10px">View All Users</Button>
-                        <Table variant="simple">
-                            <Thead>
-                                <Tr>
-                                    <Th><PhoneIcon /> Phone No</Th>
-                                    <Th>Username</Th>
-                                    <Th>Service</Th>
-                                    <Th>Date</Th>
-                                    <Th>Time</Th>
-                                    <Th>Duration</Th>
-                                    <Th>Actions</Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                {data.length > 0 ? (
-                                    data.map((item, index) => (
-                                        <Tr key={index}>
-                                            <Td>{item.phoneNumber || "N/A"}</Td>
-                                            <Td>{item.name || "N/A"}</Td>
-                                            <Td>{item.itemName || "N/A"}</Td>
-                                            <Td>{item.date || "N/A"}</Td>
-                                            <Td>{item.timeSlot || "N/A"}</Td>
-                                            <Td>{item.duration || "N/A"}</Td>
-                                            <Td>
-                                                <Button size="sm" colorScheme="black" mr="2">Edit</Button>
-                                                <Button size="sm" colorScheme="red" onClick={() => handleCancelClick(item)}>Cancel</Button>
-                                            </Td>
-                                        </Tr>
-                                    ))
-                                ) : (
+                        <Box overflowX="hidden">
+                            <Table variant="simple">
+                                <Thead>
                                     <Tr>
-                                        <Td colSpan={7} textAlign="center">No users found</Td>
+                                        <Th>Sno</Th>
+                                        <Th><PhoneIcon /> Phone No</Th>
+                                        <Th>Username</Th>
+                                        <Th>Email</Th>
+                                        <Th>Time</Th>
+                                        <Th>Payment Status</Th>
                                     </Tr>
-                                )}
-                            </Tbody>
-                        </Table>
+                                </Thead>
+                                <Tbody>
+                                    {data.length > 0 ? (
+                                        data.map((item, index) => (
+                                            <Tr key={index}>
+                                                <Td>{index+1}</Td>
+                                                <Td>{item.phoneNumber || "N/A"}</Td>
+                                                <Td>{item.name || "N/A"}</Td>
+                                                <Td>{item.email || "N/A"}</Td>
+                                                <Td  whiteSpace="nowrap"  // Ensures single-line display
+                                                    overflow="hidden"    // Prevents overflow
+                                                    textOverflow="ellipsis" // Adds ellipsis for long text
+                                                >{item.timeSlot || "N/A"}</Td>
+                                                <Td>{item.payment ? item.payment : "Pending"}</Td>
+                                            </Tr>
+                                        ))
+                                    ) : (
+                                        <Tr>
+                                            <Td colSpan={8} textAlign="center">No users found</Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </Box>
                     </Box>
                 )}
-                {/* Other Sections... */}
+
                 {/* Booking Management Section */}
                 {activeSection === 'bookingManagement' && (
                     <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
                         <Text fontSize="xl" color="#1E3E62" mb="15px">Booking Management</Text>
-                        <Button colorScheme="black" mb="10px">View All Bookings</Button>
-                        <Table variant="simple">
-                            <Thead>
-                                <Tr>
-                                    <Th>Item Name</Th>
-                                    <Th>Username</Th>
-                                    <Th>Date</Th>
-                                    <Th>Time</Th>
-                                    <Th>Status</Th>
-                                    <Th>Payment</Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                {data.length > 0 ? (
-                                    data.map((item, index) => (
-                                        <Tr key={index}>
-                                            <Td>{item.itemName || "N/A"}</Td>
-                                            <Td>{item.name || "N/A"}</Td>
-                                            <Td>{item.date || "N/A"}</Td>
-                                            <Td>Done</Td>
-                                            <Td>Paid</Td>
-                                            <Td>
-                                                <Button size="sm" colorScheme="black" mr="2">Edit</Button>
-                                                <Button size="sm" colorScheme="red">Cancel</Button>
-                                            </Td>
-                                        </Tr>
-                                    ))
-                                ) : (
+                        <Box overflowX="auto">
+                            <Table variant="simple">
+                                <Thead>
                                     <Tr>
-                                        <Td colSpan="6">No bookings found.</Td>
+                                        <Th>BookedDate</Th>
+                                        <Th>BookingTime</Th>
+                                        <Th>Username</Th>
+                                        <Th>Service</Th>
+                                        <Th>Slot Date</Th>
                                     </Tr>
-                                )}
-                            </Tbody>
-                        </Table>
+                                </Thead>
+                                <Tbody>
+                                    {data.length > 0 ? (
+                                        data.map((item, index) => (
+                                            <Tr key={index}>
+                                                <Td>{item.formtDate|| "N/A"}</Td>
+                                                <Td>{item.formtTime|| "N/A"}</Td>
+                                                <Td>{item.name || "N/A"}</Td>
+                                                <Td>{item.itemName || "N/A"}</Td>
+                                                <Td>{item.date || "N/A"}</Td>
+                                                
+                                            </Tr>
+                                        ))
+                                    ) : (
+                                        <Tr>
+                                            <Td colSpan={6} textAlign="center">No bookings found</Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </Box>
                     </Box>
                 )}
 
@@ -236,141 +311,155 @@ export const AdminDashboard = () => {
                 {activeSection === 'serviceManagement' && (
                     <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
                         <Text fontSize="xl" color="#1E3E62" mb="15px">Service Management</Text>
-                        <Button colorScheme="black" mb="10px">Add New Service</Button>
-                        <Table variant="simple">
-                            <Thead>
-                                <Tr>
-                                    <Th>Service Name</Th>
-                                    <Th>Price</Th>
-                                    <Th>Actions</Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                {/* Sample Data for Service Management */}
-                                <Tr>
-                                    <Td>Service 1</Td>
-                                    <Td>$100</Td>
-                                    <Td>
-                                        <Button size="sm" colorScheme="black" mr="2">Edit</Button>
-                                        <Button size="sm" colorScheme="red">Delete</Button>
-                                    </Td>
-                                </Tr>
-                                <Tr>
-                                    <Td>Service 2</Td>
-                                    <Td>$200</Td>
-                                    <Td>
-                                        <Button size="sm" colorScheme="black" mr="2">Edit</Button>
-                                        <Button size="sm" colorScheme="red">Delete</Button>
-                                    </Td>
-                                </Tr>
-                            </Tbody>
-                        </Table>
+                        <Button colorScheme="black" mb="10px">View All Services</Button>
+                        <Box overflowX="auto">
+                            <Table variant="simple">
+                                <Thead>
+                                    <Tr>
+                                        <Th><PhoneIcon /> Phone No</Th>
+                                        <Th>Username</Th>
+                                        <Th>Service</Th>
+                                        <Th>Date</Th>
+                                        <Th>Time</Th>
+                                        <Th>Duration</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {data.length > 0 ? (
+                                        data.map((item, index) => (
+                                            <Tr key={index}>
+                                                <Td>{item.phoneNumber || "N/A"}</Td>
+                                                <Td>{item.name || "N/A"}</Td>
+                                                <Td>{item.itemName || "N/A"}</Td>
+                                                <Td>{item.date || "N/A"}</Td>
+                                                <Td>{item.timeSlot || "N/A"}</Td>
+                                                <Td>{item.duration || "N/A"}</Td>
+                                                <Td>
+                                                    {/* <Button size="sm" colorScheme="black" mr="2">Edit</Button>
+                                                    <Button size="sm" colorScheme="red" onClick={() => handleCancelClick(item)}>Cancel</Button> */}
+                                                </Td>
+                                            </Tr>
+                                        ))
+                                    ) : (
+                                        <Tr>
+                                            <Td colSpan={6} textAlign="center">No services found</Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </Box>
                     </Box>
+                    
                 )}
-
-                {/* Payments Section */}
-                {activeSection === 'payments' && (
+                     {/* User Management Section */}
+                     {activeSection === 'payments' && (
                     <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
-                        <Text fontSize="xl" color="#1E3E62" mb="15px">Payments</Text>
-                        <Table variant="simple">
-                            <Thead>
-                                <Tr>
-                                    <Th>Payment ID</Th>
-                                    <Th>Amount</Th>
-                                    <Th>Status</Th>
-                                    <Th>Date</Th>
-                                    <Th>Actions</Th>
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                {/* Sample Data for Payments */}
-                                <Tr>
-                                    <Td>001</Td>
-                                    <Td>$100</Td>
-                                    <Td>Completed</Td>
-                                    <Td>2024-01-01</Td>
-                                    <Td>
-                                        <Button size="sm" colorScheme="black" mr="2">View</Button>
-                                    </Td>
-                                </Tr>
-                                <Tr>
-                                    <Td>002</Td>
-                                    <Td>$200</Td>
-                                    <Td>Pending</Td>
-                                    <Td>2024-01-02</Td>
-                                    <Td>
-                                        <Button size="sm" colorScheme="black" mr="2">View</Button>
-                                    </Td>
-                                </Tr>
-                            </Tbody>
-                        </Table>
+                    <Box display='flex' justifyContent="space-between" >
+                        <Text fontSize="xl" color="#1E3E62" mb="15px">User Management</Text>
+                    </Box>
+                        <Button colorScheme="black" mb="10px">View All Users</Button>
+                        <Box overflowX="hidden">
+                            <Table variant="simple">
+                                <Thead>
+                                    <Tr>
+                                        <Th>Sno</Th>
+                                        <Th><PhoneIcon />TransactionID</Th>
+                                        <Th>Username</Th>
+                                        <Th>Amount</Th>
+                                        <Th>Payment Status</Th>
+                                        <Th>CancelSlot</Th>
+                                        <Th>ConfirmSlot</Th>
+                                    </Tr>
+                                </Thead>
+                                <Tbody>
+                                    {data.length > 0 ? (
+                                        data.map((item, index) => (
+                                            <Tr key={index}>
+                                                <Td>{index+1}</Td>
+                                                <Td>{item.Tid || "N/A"}</Td>
+                                                <Td>{item.name || "N/A"}</Td>
+                                                <Td>{item.Amt || "N/A"}</Td>
+                                                <Td>{item.payment ? item.payment : "Pending"}</Td>
+                                                <Td>
+                                                <Button size="sm" colorScheme="black" mr="2">Edit</Button>
+                                                <Button size="sm" colorScheme="red"  
+                                                isDisabled={item.payment==='paid'}
+                                                onClick={() => handleCancelClick(item)}>Cancel</Button>
+                                                </Td>
+                                                <Td>
+                                                <Button size="sm" colorScheme="black" mr="2">Edit</Button>
+                                                    <Button
+                                                        size="sm"
+                                                        colorScheme="green"
+                                                        isDisabled={item.payment==='paid'}
+                                                        onClick={() => handleConfirm(item)}
+                                                    >
+                                                        {item.confirmStatus}
+                                                    </Button>     
+                                                </Td>
+                                            </Tr>
+                                        ))
+                                    ) : (
+                                        <Tr>
+                                            <Td colSpan={8} textAlign="center">No users found</Td>
+                                        </Tr>
+                                    )}
+                                </Tbody>
+                            </Table>
+                        </Box>
                     </Box>
                 )}
-
-                {/* Reports Section */}
-                {activeSection === 'review' && (
-                    <Box bg="white" p="20px" mb="20px" borderRadius="8px" boxShadow="md">
-                        <Text fontSize="xl" color="#1E3E62" mb="15px">Rating by the users</Text>
-                        <Text>Rating: <strong>7</strong></Text>
-                        <Text>Users count: <strong>123</strong></Text>
-                    </Box>
-                )}
-                             {/* Alert Dialog for Single User Deletion */}
-                <AlertDialog
-                    isOpen={isOpen}
-                    leastDestructiveRef={cancelRef}
-                    onClose={onClose}
-                >
-                    <AlertDialogOverlay>
-                        <AlertDialogContent>
-                            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                                Delete User
-                            </AlertDialogHeader>
-
-                            <AlertDialogBody>
-                                Are you sure you want to delete this user? This action cannot be undone.
-                            </AlertDialogBody>
-
-                            <AlertDialogFooter>
-                                <Button ref={cancelRef} onClick={onClose}>
-                                    Cancel
-                                </Button>
-                                <Button colorScheme="red" onClick={() => { handleDelete(); onClose(); }} ml={3}>
-                                    Delete
-                                </Button>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialogOverlay>
-                </AlertDialog>
-
-                {/* Alert Dialog for Delete All Users */}
-                <AlertDialog
-                    isOpen={isAlertOpen}
-                    leastDestructiveRef={cancelRef}
-                    onClose={onAlertClose}
-                >
-                    <AlertDialogOverlay>
-                        <AlertDialogContent>
-                            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                                Delete All Users
-                            </AlertDialogHeader>
-
-                            <AlertDialogBody>
-                                Are you sure you want to delete all users? This action cannot be undone.
-                            </AlertDialogBody>
-
-                            <AlertDialogFooter>
-                                <Button ref={cancelRef} onClick={onAlertClose}>
-                                    Cancel
-                                </Button>
-                                <Button colorScheme="red" onClick={() => { handleDeleteAll(); onAlertClose(); }} ml={3}>
-                                    Delete All
-                                </Button>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialogOverlay>
-                </AlertDialog>
             </Box>
+
+            {/* Alert Dialog for delete confirmation */}
+            <AlertDialog
+                isOpen={isOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={onClose}
+            >
+                <AlertDialogOverlay />
+                <AlertDialogContent>
+                    <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                        Delete User
+                    </AlertDialogHeader>
+                    <AlertDialogBody>
+                        Are you sure you want to delete this user? This action cannot be undone.
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button ref={cancelRef} onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button colorScheme="red" onClick={() => handleDelete(itemToDelete)} ml={3}>
+                            Delete
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Alert Dialog for delete all confirmation */}
+            <AlertDialog
+                isOpen={isAlertOpen}
+                leastDestructiveRef={cancelRef}
+                onClose={onAlertClose}
+            >
+                <AlertDialogOverlay />
+                <AlertDialogContent>
+                    <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                        Delete All Users
+                    </AlertDialogHeader>
+                    <AlertDialogBody>
+                        Are you sure you want to delete all users? This action cannot be undone.
+                    </AlertDialogBody>
+                    <AlertDialogFooter>
+                        <Button ref={cancelRef} onClick={onAlertClose}>
+                            Cancel
+                        </Button>
+                        <Button colorScheme="red" onClick={handleDeleteAll} ml={3}>
+                            Delete All
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Flex>
     );
 };

@@ -37,9 +37,9 @@ export const initialItems = [
     description: 'The equipment will be provided here and also snack items at normal price are available',
   },
   {
-    name: 'Hotel',
+    name: 'Party House',
     image: 'https://i.pinimg.com/originals/2f/4e/52/2f4e5276ef4779c23889ac5384612a1a.jpg',
-    description: 'kjadh',
+    description: '',
   },
 ];
 
@@ -103,7 +103,7 @@ export const Main = () => {
       // Navigate to the /go page with the provided name and image
       navigate("/go", { state: { itemName: name, itemImage: image } });
       setLoading(false); // Set loading to false after navigation
-    }, 2000); // 2 seconds loading time
+    }, 1500); // 2 seconds loading time
 
     return () => clearTimeout(timer); // Cleanup the timer on unmount
   };
