@@ -44,7 +44,7 @@ export const AdminDashboard = () => {
 
     const fetchData = () => {
         axios
-            .post("http://localhost:9000/admin", { action: 'fetch' })
+            .post("https://skyserverrtv.onrender.com/astroiddestroier", { action: 'fetch' })
             .then((response) => {
                 setData(
                     response.data.map((item) => ({
@@ -63,7 +63,7 @@ export const AdminDashboard = () => {
 
     const handleConfirm = (info) => {
         if (!info) return; // Guard against empty info
-        axios.post("http://localhost:9000/admin", { action: 'confirm', info })
+        axios.post("https://skyserverrtv.onrender.com/astroiddestroier", { action: 'confirm', info })
             .then((response) => {
                 const updatedItem = response.data; // Get updated item from backend
                 setData((prevData) =>
@@ -98,7 +98,7 @@ export const AdminDashboard = () => {
    
     
     const handleDelete = (item) => {
-        axios.post("http://localhost:9000/admin", { action: 'delete', item })
+        axios.post("https://skyserverrtv.onrender.com/astroiddestroier", { action: 'delete', item })
             .then((response) => {
                 // Remove item from frontend list
                 console.log(response)
@@ -128,7 +128,7 @@ export const AdminDashboard = () => {
 
     const handleDeleteAll = () => {
         axios
-            .post("http://localhost:9000/admin", { action: 'deleteall' }) // Send delete request to backend
+            .post("https://skyserverrtv.onrender.com/astroiddestroier", { action: 'deleteall' }) // Send delete request to backend
             .then((response) => {
                 setData([]); // Clear the data after deletion
                 setItemCount(0); // Reset item count
@@ -239,6 +239,7 @@ export const AdminDashboard = () => {
                                         <Th><PhoneIcon /> Phone No</Th>
                                         <Th>Username</Th>
                                         <Th>Email</Th>
+                                        <Th>SlotDate</Th>
                                         <Th>Time</Th>
                                         <Th>Payment Status</Th>
                                     </Tr>
@@ -251,6 +252,7 @@ export const AdminDashboard = () => {
                                                 <Td>{item.phoneNumber || "N/A"}</Td>
                                                 <Td>{item.name || "N/A"}</Td>
                                                 <Td>{item.email || "N/A"}</Td>
+                                                <Td>{item.date}</Td>
                                                 <Td  whiteSpace="nowrap"  // Ensures single-line display
                                                     overflow="hidden"    // Prevents overflow
                                                     textOverflow="ellipsis" // Adds ellipsis for long text

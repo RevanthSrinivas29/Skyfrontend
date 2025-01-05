@@ -62,7 +62,7 @@ export const PaymentPage = () => {
         console.log("Submitting payment details:", details); // Debugging
     
         try {
-            const response = await axios.post('http://localhost:9000/payment', details);
+            const response = await axios.post('https://skyserverrtv.onrender.com/payment', details);
             console.log("Server response:", response); // Debugging
     
             if (response.status === 200) {

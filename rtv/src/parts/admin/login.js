@@ -30,7 +30,7 @@ export const AdminLogin = () => {
     
         try {
             // Send login request to backend
-            const response = await axios.post('http://localhost:9000/login', {
+            const response = await axios.post('https://skyserverrtv.onrender.com/login', {
                 name,
                 pwd,
             });

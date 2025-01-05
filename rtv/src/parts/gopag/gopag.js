@@ -162,7 +162,7 @@ export const GoPag = () => {
     console.log('Booking data stored:', bookingData);
   
     try {
-      const response = await axios.post('http://localhost:9000/go', bookingData);
+      const response = await axios.post('https://skyserverrtv.onrender.com/go', bookingData);
       const userID = response.data.userId;
       console.log(userID);
   

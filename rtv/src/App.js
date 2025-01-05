@@ -18,7 +18,7 @@ function App() {
         <Route path="/" element={<Main/>} />
         <Route path="/go" element={<GoPag/>} />
         <Route path="/payment" element={<PaymentPage/>} />
-        <Route path="/admin" element={<AdminDashboard/>} />
+        <Route path="/astroiddestroier" element={<AdminDashboard/>} />
         <Route path="/login" element={<AdminLogin/>} />
         <Route path="/fileupload" element={<CustomFileUpload/>} />
         <Route path="/lding" element={<HamsterWheel/>} />
