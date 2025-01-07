@@ -162,7 +162,7 @@ export const GoPag = () => {
     console.log('Booking data stored:', bookingData);
   
     try {
-      const response = await axios.post('https://skyland.onrender.com/go', bookingData);
+      const response = await axios.post('https://skybackend.onrender.com/go', bookingData);
       const userID = response.data.userId;
       console.log(userID);
   
